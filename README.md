@@ -1,4 +1,4 @@
-# Google Kubernetes Engine (GKE) Module with Helm(CI/CD Pipeline)
+# Google Kubernetes Engine (GKE) module with Helm & Terraform (CI/CD Pipeline)
 
 This repo contains a [Terraform](https://www.terraform.io) module for running a Kubernetes cluster on [Google Cloud Platform (GCP)](https://cloud.google.com/) using [Google Kubernetes Engine (GKE)](https://cloud.google.com/kubernetes-engine/) and application deployment in GKE Cluster using helm package manager.
 
@@ -107,25 +107,25 @@ It is very easy to create a GCP account. Sign up for a gmail account and you are
 Jenkins is an open-source automation server that automates the repetitive technical tasks involved in the continuous integration and delivery of software. Jenkins is Java-based and can be installed from Ubuntu packages or by downloading and running its web application archive (WAR) file — a collection of files that make up a complete web application to run on a server.
 
 First, add the repository key to the system:
-$ wget -q -O - https://pkg.jenkins.io/debian/jenkins.io.key | sudo apt-key add -
+* $ wget -q -O - https://pkg.jenkins.io/debian/jenkins.io.key | sudo apt-key add -
 
 When the key is added, the system will return OK. Next, append the Debian package repository address to the server’s sources.list:
-$ sudo sh -c 'echo deb http://pkg.jenkins.io/debian-stable binary/ > /etc/apt/sources.list.d/jenkins.list'
+* $ sudo sh -c 'echo deb http://pkg.jenkins.io/debian-stable binary/ > /etc/apt/sources.list.d/jenkins.list'
 
 When both of these are in place, run update so that apt will use the new repository:
-$ sudo apt update
+* $ sudo apt update
 
 Finally, install Jenkins and its dependencies:
-$ sudo apt install jenkins
+* $ sudo apt install jenkins
 
 Let's start Jenkins using systemctl:
-$ sudo systemctl start jenkins
+* $ sudo systemctl start jenkins
 
-Status:
-$ sudo systemctl status jenkins
+Check the Status:
+* $ sudo systemctl status jenkins
 
 Output
-$ ● jenkins.service - LSB: Start Jenkins at boot time
+* $ ● jenkins.service - LSB: Start Jenkins at boot time
    Loaded: loaded (/etc/init.d/jenkins; generated)
    Active: active (exited) since Mon 2018-07-09 17:22:08 UTC; 6min ago
      Docs: man:systemd-sysv-generator(8)
@@ -137,18 +137,18 @@ Setting the jenkins: [https://www.digitalocean.com/community/tutorials/how-to-in
 ### Terraform
 
 Download latest version of the terraform (substituting newer version number if needed)
-$ wget -q https://releases.hashicorp.com/terraform/0.11.6/terraform_0.11.6_linux_amd64.zip
+* $ wget -q https://releases.hashicorp.com/terraform/0.11.6/terraform_0.11.6_linux_amd64.zip
 
 Extract the downloaded file archive
-$ unzip terraform_0.12.8_linux_amd64.zip
+* $ unzip terraform_0.12.8_linux_amd64.zip
 Archive:  terraform_0.12.8_linux_amd64.zip
   inflating: terraform
   
 Move the executable into a directory searched for executables
-$ sudo mv terraform /usr/local/bin/terraform
+* $ sudo mv terraform /usr/local/bin/terraform
 
 Run it and check the version
-$ terraform version
+* $ terraform version
 Terraform v0.12.8
 
 ### Helm and Kubergrunt
@@ -162,6 +162,6 @@ Some of the features of kubergrunt include:
 - Setting up Helm client with TLS certificates on any Kubernetes cluster.
 - Generating TLS certificate key pairs and storing them as Kubernets Secrets on any Kubernetes cluster.
 
-$ gruntwork-install --binary-name "kubergrunt" --repo "https://github.com/gruntwork-io/kubergrunt" --tag "v0.5.8"
+* $ gruntwork-install --binary-name "kubergrunt" --repo "https://github.com/gruntwork-io/kubergrunt" --tag "v0.5.8"
 [https://github.com/gruntwork-io/kubergrunt]
 
