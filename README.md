@@ -20,8 +20,9 @@ This repo has the following folder structure:
     * [gke-service-account](https://github.com/Babug01/k8s_deployment/tree/master/modules/gke-service-account):
     Used to configure a GCP service account for use with a GKE cluster.
 
-	* [helloworld] (https://github.com/Babug01/k8s_deployment/tree/master/helloworld): This is the application we are deploying into the cluster using Helm.
-	
+* [helloworld](https://github.com/Babug01/k8s_deployment/tree/master/helloworld): This is the application we are deploying into the cluster using Helm.
+* [architecture](https://github.com/Babug01/k8s_deployment/tree/master/architecture) Diagram.
+
 ## What is Kubernetes?
 
 [Kubernetes](https://kubernetes.io) is an open source container management system for deploying, scaling, and managing
