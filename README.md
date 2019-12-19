@@ -1,15 +1,8 @@
-# Google Kubernetes Engine (GKE) Module with Helm
+# Google Kubernetes Engine (GKE) Module with Helm(CI/CD Pipeline)
 
-This repo contains a [Terraform](https://www.terraform.io) module for running a Kubernetes cluster on [Google Cloud Platform (GCP)](https://cloud.google.com/)
-using [Google Kubernetes Engine (GKE)](https://cloud.google.com/kubernetes-engine/).
+This repo contains a [Terraform](https://www.terraform.io) module for running a Kubernetes cluster on [Google Cloud Platform (GCP)](https://cloud.google.com/) using [Google Kubernetes Engine (GKE)](https://cloud.google.com/kubernetes-engine/) and application deployment in GKE Cluster using helm package manager.
 
-## Quickstart
-
-If you want to quickly spin up a GKE Private Cluster with Tiller, you can run the example that is in the root of this
-repo. Check out the [gke-private-tiller example documentation](https://github.com/gruntwork-io/terraform-google-gke/blob/master/examples/gke-private-tiller)
-for instructions.
-
-## What's in this repo
+# What's in this repo
 
 This repo has the following folder structure:
 
@@ -29,7 +22,7 @@ This repo has the following folder structure:
 
 	* [helloworld] (https://github.com/Babug01/k8s_deployment/tree/master/helloworld): This is the application we are deploying into the cluster using Helm.
 	
-## What is Kubernetes?
+# What is Kubernetes?
 
 [Kubernetes](https://kubernetes.io) is an open source container management system for deploying, scaling, and managing
 containerized applications. Kubernetes is built by Google based on their internal proprietary container management
@@ -38,7 +31,7 @@ built in support for common operational tasks such as replication, autoscaling, 
 
 You can learn more about Kubernetes from [the official documentation](https://kubernetes.io/docs/tutorials/kubernetes-basics/).
 
-## What is GKE?
+# What is GKE?
 
 Google Kubernetes Engine or "GKE" is a Google-managed Kubernetes environment. GKE is a fully managed experience; it
 handles the management/upgrading of the Kubernetes cluster master as well as autoscaling of "nodes" through "node pool"
@@ -47,7 +40,7 @@ templates.
 Through GKE, your Kubernetes deployments will have first-class support for GCP IAM identities, built-in configuration of
 high-availability and secured clusters, as well as native access to GCP's networking features such as load balancers.
 
-## <a name="how-to-run-applications"></a>How do you run applications on Kubernetes?
+# <a name="how-to-run-applications"></a>How do you run applications on Kubernetes?
 
 There are three different ways you can schedule your application on a Kubernetes cluster. In all three, your application
 Docker containers are packaged as a [Pod](https://kubernetes.io/docs/concepts/workloads/pods/pod/), which are the
@@ -70,9 +63,7 @@ lifecycle of a Pod. Using Controllers, you can schedule your Pods as:
   on each node. Like Deployments, Daemon Sets will reprovision failed Pods and schedule new ones automatically on
   new nodes that join the cluster.
 
-<!-- TODO: ## What parts of the Production Grade Infrastructure Checklist are covered by this Module? -->
-
-## What's a Module?
+# What's a Module?
 
 A Module is a canonical, reusable, best-practices definition for how to run a single piece of infrastructure, such
 as a database or server cluster. Each Module is written using a combination of [Terraform](https://www.terraform.io/)
@@ -104,7 +95,7 @@ a version number bump.
 - Terraform
 - Helm
 
-## Installation
+# Installation
 
 # Terraform
 
