@@ -186,3 +186,32 @@ Some of the features of kubergrunt include:
 $ gruntwork-install --binary-name "kubergrunt" --repo "https://github.com/gruntwork-io/kubergrunt" --tag "v0.5.8"
 [https://github.com/gruntwork-io/kubergrunt]
 ```
+
+## CI/CD Flow:
+
+1. Jenkins will trigger terraform to create the private cluster in GKE in GCP portal.
+2. Once cluster is created in GKE, the Helm package manager will start deploy the [Hello World], application in cluster.
+```
+# DEPLOYMENT
+
+resource "null_resource" "deployment" {
+  provisioner "local-exec" {
+    command = <<-EOF
+	helm install helloworld/  --generate-name;
+    EOF
+	}
+  depends_on = [null_resource.wait_for_tiller]
+}
+
+```
+3. Application is deployed successfully. Please use below URL to check the deployed applications,
+```
+/app1
+ -  
+/app2
+ - 
+``` 
+4. Use below URL to check the logs.
+
+
+## Completed !!!
