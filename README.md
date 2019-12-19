@@ -215,4 +215,4 @@ resource "null_resource" "deployment" {
 4. Use below URL to check the logs.
 
 
-## Completed !!!
+### Nice !!!
