@@ -95,7 +95,7 @@ a version number bump.
 	
 ## Architecture Diagram
 
-[https://github.com/Babug01/k8s_deployment/blob/master/architecture/architect.png]
+![Alt text][https://github.com/Babug01/k8s_deployment/blob/master/architecture/architect.png]
 
 ## Prerequistes
 
