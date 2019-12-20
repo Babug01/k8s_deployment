@@ -1,13 +1,6 @@
-# Google Kubernetes Engine (GKE) Module with Helm
+# Google Kubernetes Engine (GKE) module with Helm & Terraform (CI/CD Pipeline)
 
-This repo contains a [Terraform](https://www.terraform.io) module for running a Kubernetes cluster on [Google Cloud Platform (GCP)](https://cloud.google.com/)
-using [Google Kubernetes Engine (GKE)](https://cloud.google.com/kubernetes-engine/).
-
-## Quickstart
-
-If you want to quickly spin up a GKE Private Cluster with Tiller, you can run the example that is in the root of this
-repo. Check out the [gke-private-tiller example documentation](https://github.com/gruntwork-io/terraform-google-gke/blob/master/examples/gke-private-tiller)
-for instructions.
+This repo contains a [Terraform](https://www.terraform.io) module for running a Kubernetes cluster on [Google Cloud Platform (GCP)](https://cloud.google.com/) using [Google Kubernetes Engine (GKE)](https://cloud.google.com/kubernetes-engine/) and application deployment in GKE Cluster using helm package manager.
 
 ## What's in this repo
 
@@ -27,8 +20,9 @@ This repo has the following folder structure:
     * [gke-service-account](https://github.com/Babug01/k8s_deployment/tree/master/modules/gke-service-account):
     Used to configure a GCP service account for use with a GKE cluster.
 
-	* [helloworld] (https://github.com/Babug01/k8s_deployment/tree/master/helloworld): This is the application we are deploying into the cluster using Helm.
-	
+* [helloworld](https://github.com/Babug01/k8s_deployment/tree/master/helloworld): This is the application we are deploying into the cluster using Helm.
+* [architecture](https://github.com/Babug01/k8s_deployment/tree/master/architecture) Diagram.
+
 ## What is Kubernetes?
 
 [Kubernetes](https://kubernetes.io) is an open source container management system for deploying, scaling, and managing
@@ -70,8 +64,6 @@ lifecycle of a Pod. Using Controllers, you can schedule your Pods as:
   on each node. Like Deployments, Daemon Sets will reprovision failed Pods and schedule new ones automatically on
   new nodes that join the cluster.
 
-<!-- TODO: ## What parts of the Production Grade Infrastructure Checklist are covered by this Module? -->
-
 ## What's a Module?
 
 A Module is a canonical, reusable, best-practices definition for how to run a single piece of infrastructure, such
@@ -95,7 +87,7 @@ a version number bump.
 	
 ## Architecture Diagram
 
-[https://github.com/Babug01/k8s_deployment/blob/master/architecture/architect.png]
+![Alt text](architecture/architect.png)
 
 ## Prerequistes
 
@@ -106,20 +98,81 @@ a version number bump.
 
 ## Installation
 
-# Terraform
+### Create an GCP account
+It is very easy to create a GCP account. Sign up for a gmail account and you are ready to go. You can also use your existing gmail account, if you have any.
 
+[GCP console][https://console.cloud.google.com/home/]
+
+### Jenkins
+
+Jenkins is an open-source automation server that automates the repetitive technical tasks involved in the continuous integration and delivery of software. Jenkins is Java-based and can be installed from Ubuntu packages or by downloading and running its web application archive (WAR) file — a collection of files that make up a complete web application to run on a server.
+
+First, add the repository key to the system:
+```
+$ wget -q -O - https://pkg.jenkins.io/debian/jenkins.io.key | sudo apt-key add -
+```
+
+When the key is added, the system will return OK. Next, append the Debian package repository address to the server’s sources.list:
+```
+$ sudo sh -c 'echo deb http://pkg.jenkins.io/debian-stable binary/ > /etc/apt/sources.list.d/jenkins.list'
+```
+
+When both of these are in place, run update so that apt will use the new repository:
+```
+$ sudo apt update
+```
+
+Finally, install Jenkins and its dependencies:
+```
+$ sudo apt install jenkins
+```
+
+Let's start Jenkins using systemctl:
+```
+$ sudo systemctl start jenkins
+```
+
+Check the Status:
+```
+$ sudo systemctl status jenkins
+```
+Output
+```
+$ ● jenkins.service - LSB: Start Jenkins at boot time
+   Loaded: loaded (/etc/init.d/jenkins; generated)
+   Active: active (exited) since Mon 2018-07-09 17:22:08 UTC; 6min ago
+     Docs: man:systemd-sysv-generator(8)
+    Tasks: 0 (limit: 1153)
+   CGroup: /system.slice/jenkins.service
+```
+Setting the jenkins: [https://www.digitalocean.com/community/tutorials/how-to-install-jenkins-on-ubuntu-18-04]
+
+### Terraform
+
+Download latest version of the terraform (substituting newer version number if needed)
+```
 $ wget -q https://releases.hashicorp.com/terraform/0.11.6/terraform_0.11.6_linux_amd64.zip
+```
 
+Extract the downloaded file archive
+```
 $ unzip terraform_0.12.8_linux_amd64.zip
-Archive:  terraform_0.12.8_linux_amd64.zip
-  inflating: terraform               
+  Archive:  terraform_0.12.8_linux_amd64.zip
+  inflating: terraform
+```
 
+Move the executable into a directory searched for executables
+```
 $ sudo mv terraform /usr/local/bin/terraform
+```
 
+Run it and check the version
+```
 $ terraform version
 Terraform v0.12.8
+```
 
-# Helm and Kubergrunt
+### Helm and Kubergrunt
 
 kubergrunt is a standalone go binary with a collection of commands that attempts to fill in the gaps between Terraform, Helm, and Kubectl for managing a Kubernetes Cluster.
 
@@ -130,6 +183,36 @@ Some of the features of kubergrunt include:
 - Setting up Helm client with TLS certificates on any Kubernetes cluster.
 - Generating TLS certificate key pairs and storing them as Kubernets Secrets on any Kubernetes cluster.
 
+```
 $ gruntwork-install --binary-name "kubergrunt" --repo "https://github.com/gruntwork-io/kubergrunt" --tag "v0.5.8"
 [https://github.com/gruntwork-io/kubergrunt]
+```
 
+## CI/CD Flow:
+
+1. Jenkins will trigger terraform to create the private cluster in GKE in GCP portal.
+2. Once cluster is created in GKE, the Helm package manager will start deploy the [Hello World], application in cluster.
+```
+# DEPLOYMENT
+
+resource "null_resource" "deployment" {
+  provisioner "local-exec" {
+    command = <<-EOF
+	helm install helloworld/  --generate-name;
+    EOF
+	}
+  depends_on = [null_resource.wait_for_tiller]
+}
+
+```
+3. Application is deployed successfully. Please use below URL to check the deployed applications,
+```
+/app1
+ -  
+/app2
+ - 
+``` 
+4. Use below URL to check the logs.
+
+
+### Nice !!!
