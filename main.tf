@@ -58,20 +58,6 @@ provider "kubernetes" {
   cluster_ca_certificate = data.template_file.cluster_ca_certificate.rendered
 }
 
-provider "helm" {
-  # We don't install Tiller automatically, but instead use Kubergrunt as it sets up the TLS certificates much easier.
-  install_tiller = true
-
-  # Enable TLS so Helm can communicate with Tiller securely.
-  enable_tls = false
-
-  kubernetes {
-    host                   = data.template_file.gke_host_endpoint.rendered
-    token                  = data.template_file.access_token.rendered
-    cluster_ca_certificate = data.template_file.cluster_ca_certificate.rendered
-  }
-}
-
 # Deploy private cluster in GCP
 
 
@@ -231,12 +217,6 @@ resource "null_resource" "configure_kubectl" {
 }
 
 # Create a ServiceAccount for Tiller
-resource "kubernetes_service_account" "tiller" {
-  metadata {
-    name      = "tiller"
-    namespace = local.tiller_namespace
-  }
-}
 
 resource "kubernetes_cluster_role_binding" "user" {
   metadata {
@@ -257,130 +237,12 @@ resource "kubernetes_cluster_role_binding" "user" {
 
   # We give the Tiller ServiceAccount cluster admin status so that we can deploy anything in any namespace using this
   # Tiller instance for testing purposes. In production, you might want to use a more restricted role.
-  subject {
-    # this is a workaround for https://github.com/terraform-providers/terraform-provider-kubernetes/issues/204.
-    # we have to set an empty api_group or the k8s call will fail. It will be fixed in v1.5.2 of the k8s provider.
-    api_group = ""
-
-    kind      = "ServiceAccount"
-    name      = kubernetes_service_account.tiller.metadata[0].name
-    namespace = local.tiller_namespace
-  }
 
   subject {
     kind      = "Group"
     name      = "system:masters"
     api_group = "rbac.authorization.k8s.io"
   }
-}
-
-# GENERATE TLS CERTIFICATES FOR USE WITH TILLER
-# This will use kubergrunt to generate TLS certificates, and upload them as Kubernetes Secrets that can then be used by Tiller.
-
-resource "null_resource" "tiller_tls_certs" {
-  provisioner "local-exec" {
-    command = <<-EOF
-      kubergrunt tls gen --ca --namespace kube-system --secret-name ${local.tls_ca_secret_name} --secret-label gruntwork.io/tiller-namespace=${local.tiller_namespace} --secret-label gruntwork.io/tiller-credentials=true --secret-label gruntwork.io/tiller-credentials-type=ca --tls-subject-json '${jsonencode(var.tls_subject)}' ${local.tls_algorithm_config} ${local.kubectl_auth_config}
-
-      kubergrunt tls gen --namespace ${local.tiller_namespace} --ca-secret-name ${local.tls_ca_secret_name} --ca-namespace kube-system --secret-name ${local.tls_secret_name} --secret-label gruntwork.io/tiller-namespace=${local.tiller_namespace} --secret-label gruntwork.io/tiller-credentials=true --secret-label gruntwork.io/tiller-credentials-type=server --tls-subject-json '${jsonencode(var.tls_subject)}' ${local.tls_algorithm_config} ${local.kubectl_auth_config}
-    EOF
-
-    # Use environment variables for Kubernetes credentials to avoid leaking into the logs
-    environment = {
-      KUBECTL_SERVER_ENDPOINT = data.template_file.gke_host_endpoint.rendered
-      KUBECTL_CA_DATA         = base64encode(data.template_file.cluster_ca_certificate.rendered)
-      KUBECTL_TOKEN           = data.template_file.access_token.rendered
-    }
-  }
-}
-
-# DEPLOY TILLER TO THE GKE CLUSTER
-
-
-module "tiller" {
-  source = "github.com/gruntwork-io/terraform-kubernetes-helm.git//modules/k8s-tiller?ref=v0.5.0"
-
-  tiller_tls_gen_method                    = "none"
-  tiller_service_account_name              = kubernetes_service_account.tiller.metadata[0].name
-  tiller_service_account_token_secret_name = kubernetes_service_account.tiller.default_secret_name
-  tiller_tls_secret_name                   = local.tls_secret_name
-  namespace                                = local.tiller_namespace
-  tiller_image_version                     = local.tiller_version
-
-  # Kubergrunt will store the private key under the key "tls.pem" in the corresponding Secret resource, which will be
-  # accessed as a file when mounted into the container.
-  tiller_tls_key_file_name = "tls.pem"
-
-  dependencies = [null_resource.tiller_tls_certs.id, kubernetes_cluster_role_binding.user.id]
-}
-
-# The Deployment resources created in the module call to `k8s-tiller` will be complete creation before the rollout is
-# complete. We use kubergrunt here to wait for the deployment to complete, so that when this resource is done creating,
-# any resources that depend on this can assume Tiller is successfully deployed and up at that point.
-
-resource "null_resource" "wait_for_tiller" {
-  provisioner "local-exec" {
-    command = "kubergrunt helm wait-for-tiller --tiller-namespace ${local.tiller_namespace} --tiller-deployment-name ${module.tiller.deployment_name} --expected-tiller-version ${local.tiller_version} ${local.kubectl_auth_config}"
-
-    # Use environment variables for Kubernetes credentials to avoid leaking into the logs
-    environment = {
-      KUBECTL_SERVER_ENDPOINT = data.template_file.gke_host_endpoint.rendered
-      KUBECTL_CA_DATA         = base64encode(data.template_file.cluster_ca_certificate.rendered)
-      KUBECTL_TOKEN           = data.template_file.access_token.rendered
-    }
-  }
-}
-
-# CONFIGURE OPERATOR HELM CLIENT
-# To allow usage of the helm client immediately, we grant access to the admin RBAC user and configure the local helm
-# client.
-
-
-resource "null_resource" "grant_and_configure_helm" {
-  provisioner "local-exec" {
-    command = <<-EOF
-    kubergrunt helm grant --tiller-namespace ${local.tiller_namespace} --tls-subject-json '${jsonencode(var.client_tls_subject)}' --rbac-user ${data.google_client_openid_userinfo.terraform_user.email} ${local.kubectl_auth_config}
-
-    kubergrunt helm configure --helm-home ${pathexpand("~/.helm")} --tiller-namespace ${local.tiller_namespace} --resource-namespace ${local.resource_namespace} --rbac-user ${data.google_client_openid_userinfo.terraform_user.email} ${local.kubectl_auth_config}
-    EOF
-
-    # Use environment variables for Kubernetes credentials to avoid leaking into the logs
-    environment = {
-      KUBECTL_SERVER_ENDPOINT = data.template_file.gke_host_endpoint.rendered
-      KUBECTL_CA_DATA         = base64encode(data.template_file.cluster_ca_certificate.rendered)
-      KUBECTL_TOKEN           = data.template_file.access_token.rendered
-    }
-  }
-
-  depends_on = [null_resource.wait_for_tiller]
-}
-
-
-# COMPUTATIONS
-# These locals set constants and compute various useful information used throughout this Terraform module.
-
-
-locals {
-  # For this example, we hardcode our tiller namespace to kube-system. In production, you might want to consider using a
-  # different Namespace.
-  tiller_namespace = "kube-system"
-
-  # For this example, we setup Tiller to manage the default Namespace.
-  resource_namespace = "default"
-
-  # We install an older version of Tiller to match the Helm library version used in the Terraform helm provider.
-  tiller_version = "v2.11.0"
-
-  # We store the CA Secret in the kube-system Namespace, given that only cluster admins should access these.
-  tls_ca_secret_namespace = "kube-system"
-
-  # We name the TLS Secrets to be compatible with the `kubergrunt helm grant` command
-  tls_ca_secret_name   = "${local.tiller_namespace}-namespace-tiller-ca-certs"
-  tls_secret_name      = "tiller-certs"
-  tls_algorithm_config = "--tls-private-key-algorithm ${var.private_key_algorithm} ${var.private_key_algorithm == "ECDSA" ? "--tls-private-key-ecdsa-curve ${var.private_key_ecdsa_curve}" : "--tls-private-key-rsa-bits ${var.private_key_rsa_bits}"}"
-
-  # These will be filled in by the shell environment
-  kubectl_auth_config = "--kubectl-server-endpoint \"$KUBECTL_SERVER_ENDPOINT\" --kubectl-certificate-authority \"$KUBECTL_CA_DATA\" --kubectl-token \"$KUBECTL_TOKEN\""
 }
 
 
@@ -406,10 +268,13 @@ data "template_file" "cluster_ca_certificate" {
 resource "null_resource" "deployment" {
   provisioner "local-exec" {
     command = <<-EOF
-    helm init --upgrade;
-	helm repo update;
-	helm install helloworld --name hello --namespace hello --timeout 1000 --wait;
+        curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
+        kubectl create serviceaccount --namespace kube-system tiller
+        kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
+        kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'      
+        helm init --service-account tiller --upgrade
+	helm install helloworld/;
     EOF
 	}
-  depends_on = [null_resource.wait_for_tiller]
+ depends_on = ["null_resource.configure_kubectl"]
 }

@@ -8,9 +8,10 @@ image:
   pullPolicy: IfNotPresent
 service:
   name: nginx
-  type: ClusterIP
+  type: LoadBalancer
   externalPort: 80
   internalPort: 80
+  nodePort: 31000
 ingress:
   enabled: true 
   # Used to create an Ingress record.

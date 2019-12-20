@@ -30,13 +30,13 @@ variable "region" {
 variable "cluster_name" {
   description = "The name of the Kubernetes cluster."
   type        = string
-  default     = "k8s-cluster"
+  default     = "k8s-final-cluster"
 }
 
 variable "cluster_service_account_name" {
   description = "The name of the custom service account used for the GKE cluster. This parameter is limited to a maximum of 28 characters."
   type        = string
-  default     = "cluster-sa"
+  default     = "cluster-sa-svc"
 }
 
 variable "cluster_service_account_description" {
