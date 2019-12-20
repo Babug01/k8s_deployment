@@ -208,11 +208,9 @@ resource "null_resource" "deployment" {
 3. Application is deployed successfully. Please use below URL to check the deployed applications,
 ```
 /app1
- -  
+ -  http://chart-example.local/app1
 /app2
- - 
+ - http://chart-example.local/app2
 ``` 
-4. Use below URL to check the logs.
-
 
 ### Nice !!!
