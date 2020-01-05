@@ -17,12 +17,12 @@ spec:
         paths:
           - path: {{ .Values.ingress.app1_path }} 
             backend:
-              serviceName: {{ $serviceName }}
-              servicePort: {{ $servicePort }}
+              serviceName: {{ .Values.service_1.name }}
+              servicePort: {{ .Values.service_1.internalPort }}
           - path: {{ .Values.ingress.app2_path }} 
             backend:
-              serviceName: {{ $serviceName }}-1
-              servicePort: {{ $servicePort }}
+              serviceName: {{ .Values.service_2.name }}
+              servicePort: {{ .Values.service_2.internalPort }}
 
   {{- if .Values.ingress.tls }}
   tls:
