@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ template "helloworld-chart.fullname" . }}
+  name: {{ .Values.service_2.name }}
   labels:
     app: {{ template "helloworld-chart.name" . }}
     chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}

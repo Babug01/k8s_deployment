@@ -1,7 +1,7 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: {{ template "helloworld-chart.fullname" . }}
+  name: {{ .Values.service_1.name }}
   labels:
     app: {{ template "helloworld-chart.name" . }}
     chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
