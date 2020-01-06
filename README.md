@@ -198,12 +198,16 @@ $ gruntwork-install --binary-name "kubergrunt" --repo "https://github.com/gruntw
 resource "null_resource" "deployment" {
   provisioner "local-exec" {
     command = <<-EOF
-	helm install helloworld/  --generate-name;
+        curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
+        kubectl create serviceaccount --namespace kube-system tiller
+        kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
+        kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'      
+        helm init --service-account tiller --upgrade
+	helm install helloworld/;
     EOF
 	}
-  depends_on = [null_resource.wait_for_tiller]
+ depends_on = ["null_resource.configure_kubectl"]
 }
-
 ```
 3. Application is deployed successfully. Please use below URL to check the deployed applications,
 ```
@@ -213,4 +217,5 @@ resource "null_resource" "deployment" {
  - http://chart-example.local/app2
 ``` 
 
-### Nice !!!
+### License
+This project is licensed under the Apache License 2.0 - see the LICENSE.md file for details
